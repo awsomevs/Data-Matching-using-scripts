@@ -1,0 +1,9 @@
+@echo off
+title Launching Multi-File Data Comparator GUI...
+echo Starting Data Comparator Desktop Application...
+python app.py
+if %ERRORLEVEL% NEQ 0 (
+    echo.
+    echo Application exited with an error. Press any key to close window...
+    pause > nul
+)

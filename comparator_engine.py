@@ -1,11 +1,46 @@
 import os
 import glob
+import shutil
 import pandas as pd
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
 SUPPORTED_EXTENSIONS = ('.csv', '.xlsx', '.xls', '.tsv', '.txt')
+
+
+def copy_matched_files(matched_file_paths, destination_folder):
+    """
+    Copies all matched target files to a destination folder.
+    Handles filename collisions by appending index numbers.
+    Returns list of copied file destination paths.
+    """
+    if not matched_file_paths or not destination_folder:
+        return []
+
+    os.makedirs(destination_folder, exist_ok=True)
+    copied_files = []
+    used_filenames = set()
+
+    for src_path in matched_file_paths:
+        if not os.path.exists(src_path):
+            continue
+
+        base_name = os.path.basename(src_path)
+        name, ext = os.path.splitext(base_name)
+
+        target_name = base_name
+        counter = 1
+        while target_name.lower() in used_filenames:
+            target_name = f"{name}_matched_{counter}{ext}"
+            counter += 1
+
+        used_filenames.add(target_name.lower())
+        dest_path = os.path.join(destination_folder, target_name)
+        shutil.copy2(src_path, dest_path)
+        copied_files.append(dest_path)
+
+    return copied_files
 
 
 def read_data_file(file_path, sheet_name=0):
@@ -100,16 +135,20 @@ def make_composite_key(row, columns, ignore_case=True):
     return "||".join(vals)
 
 
+def clean_header_name(name):
+    return str(name).lower().strip().rstrip('.').strip()
+
+
 def find_matching_headers(target_columns, key_columns):
     """
     Matches key columns case-insensitively against target file column headers.
     Returns a dictionary mapping source key column -> target key column name.
     """
-    target_map = {col.lower().strip(): col for col in target_columns}
+    target_map = {clean_header_name(col): col for col in target_columns}
     mapping = {}
 
     for kcol in key_columns:
-        k_clean = kcol.lower().strip()
+        k_clean = clean_header_name(kcol)
         if k_clean in target_map:
             mapping[kcol] = target_map[k_clean]
 
@@ -215,6 +254,13 @@ def compare_datasets(source_file_path, target_files, key_columns, ignore_case=Tr
             'Unique Keys Matched': len(matched_keys_this_file)
         })
 
+    # Collect target filepaths that matched at least 1 source record
+    per_file_df = pd.DataFrame(per_file_stats)
+    matched_target_paths = []
+    if not per_file_df.empty and 'Matched Source Records' in per_file_df.columns:
+        matched_rows = per_file_df[per_file_df['Matched Source Records'] > 0]
+        matched_target_paths = matched_rows['File Path'].tolist()
+
     # Build final result dataframes
     source_results_list = []
     total_matched_sources = 0
@@ -243,6 +289,7 @@ def compare_datasets(source_file_path, target_files, key_columns, ignore_case=Tr
         'Source File Name': source_name,
         'Source File Path': os.path.abspath(source_file_path),
         'Total Target Files Checked': len(target_files),
+        'Matched Target Files Count': len(matched_target_paths),
         'Key Columns Used': ", ".join(key_columns),
         'Total Source Records': total_source_count,
         'Found in Targets (Matched)': total_matched_sources,
@@ -252,10 +299,11 @@ def compare_datasets(source_file_path, target_files, key_columns, ignore_case=Tr
 
     return {
         'summary_stats': summary_stats,
-        'per_file_stats': pd.DataFrame(per_file_stats),
+        'per_file_stats': per_file_df,
         'full_results_df': full_results_df,
         'matched_df': matched_df,
-        'unmatched_df': unmatched_df
+        'unmatched_df': unmatched_df,
+        'matched_target_paths': matched_target_paths
     }
 
 

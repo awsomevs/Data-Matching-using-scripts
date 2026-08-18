@@ -6,6 +6,7 @@ from comparator_engine import (
     find_target_files,
     compare_datasets,
     export_to_excel,
+    copy_matched_files,
     SUPPORTED_EXTENSIONS
 )
 
@@ -169,6 +170,7 @@ def main():
     parser.add_argument("-k", "--keys", help="Comma-separated key column names to match on (e.g. 'Phone Number' or 'Account No,Bank')")
     parser.add_argument("-o", "--output", default="comparison_report.xlsx", help="Path to output Excel file (.xlsx)")
     parser.add_argument("-r", "--recursive", action="store_true", help="Search target directory recursively")
+    parser.add_argument("-c", "--copy-matched", action="store_true", help="Copy matched target files to a separate folder")
 
     args = parser.parse_args()
 
@@ -203,14 +205,24 @@ def main():
     results = compare_datasets(source_file, target_files, key_columns)
     saved_path = export_to_excel(results, output_file)
 
+    copied_folder = ""
+    if args.copy_matched and results.get('matched_target_paths'):
+        out_dir = os.path.dirname(output_file)
+        base_name = os.path.splitext(os.path.basename(output_file))[0]
+        copied_folder = os.path.join(out_dir, f"{base_name}_Matched_Files")
+        copy_matched_files(results['matched_target_paths'], copied_folder)
+
     stats = results['summary_stats']
     print("\n" + "[SUMMARY] RESULTS")
     print("-" * 50)
-    print(f"Total Source Records : {stats['Total Source Records']}")
-    print(f"FOUND in Target Files: {stats['Found in Targets (Matched)']} ({stats['Match Percentage']})")
-    print(f"NOT FOUND            : {stats['Missing in Targets (Unmatched)']}")
+    print(f"Total Source Records   : {stats['Total Source Records']}")
+    print(f"FOUND in Target Files  : {stats['Found in Targets (Matched)']} ({stats['Match Percentage']})")
+    print(f"NOT FOUND              : {stats['Missing in Targets (Unmatched)']}")
+    print(f"Matched Target Files   : {stats['Matched Target Files Count']} file(s)")
     print("-" * 50)
     print(f"[OK] Excel report saved to: {saved_path}")
+    if copied_folder:
+        print(f"[OK] Matched target files copied to: {copied_folder}")
 
 
 if __name__ == "__main__":
