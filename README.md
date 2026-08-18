@@ -4,16 +4,16 @@
 [![GUI](https://img.shields.io/badge/GUI-CustomTkinter-blueviolet.svg)](https://github.com/TomSchimansky/CustomTkinter)
 [![Data Engine](https://img.shields.io/badge/Engine-pandas%20%7C%20openpyxl-green.svg)](https://pandas.pydata.org/)
 
-A high-performance, desktop application and CLI tool designed for multi-file data matching and cross-referencing across CSV, Excel (`.xlsx`, `.xls`), TSV, and TXT files.
+A high-performance desktop application and CLI tool designed for multi-file data matching, reconciliation, and cross-referencing across CSV, Excel (`.xlsx`, `.xls`), TSV, and TXT files.
 
-Built for fast investigation workflows (e.g., cyber crime investigation, digital arrest record cross-matching, financial audits, bank account and telecom CDR reconciliation), this tool enables you to match records from a single source dataset against hundreds of target files and directories.
+Built for fast data matching workflows (e.g., data reconciliation, financial audits, database cross-matching, record linkage, and multi-file verification), this tool enables you to match records from a single source dataset against hundreds of target files and directories.
 
 ---
 
 ## 🌟 Key Features
 
 * **Multi-Format Support**: Reads `.csv`, `.xlsx`, `.xls`, `.tsv`, and `.txt` files seamlessly.
-* **Leading Zero Preservation**: Automatically loads data as raw strings to retain formatting on phone numbers, bank account numbers, complaint IDs, and national identifiers.
+* **Leading Zero Preservation**: Automatically loads data as raw strings to retain formatting on phone numbers, account numbers, IDs, and numeric codes.
 * **Flexible Key Column Matching**:
   * **Single Column Matching**: Match on any single key (e.g., `Account No` or `Phone Number`).
   * **Multi-Column Composite Keys**: Combine multiple columns (e.g., `Account No` + `Bank Name`) for composite index matching.
@@ -33,7 +33,6 @@ Built for fast investigation workflows (e.g., cyber crime investigation, digital
 ## 📂 Repository Structure
 
 ```text
-Digital Arrest Scripting/
 ├── app.py                      # Main CustomTkinter Desktop GUI application
 ├── comparator_engine.py        # Core data processing, matching algorithm, & Excel generator
 ├── compare.py                  # Command-Line Interface (CLI) & interactive terminal mode
@@ -55,7 +54,7 @@ Digital Arrest Scripting/
 Clone or download this repository, then navigate to the project directory:
 
 ```bash
-cd "Digital Arrest Scripting"
+cd "Data Matching using scripts"
 ```
 
 Install the required Python packages:
@@ -117,14 +116,14 @@ python compare.py -s sample_data/source_complaints.xlsx -t sample_data/targets -
 
 ## 🧪 Testing with Demo Data
 
-Generate realistic sample cyber crime / bank / telecom datasets to test the application immediately:
+Generate realistic sample datasets to test the application immediately:
 
 1. Run the demo data generator script:
    ```bash
    python generate_demo_data.py
    ```
    This creates a `sample_data/` directory containing:
-   * `sample_data/source_complaints.xlsx` (Source cyber complaints file)
+   * `sample_data/source_complaints.xlsx` (Sample source data file)
    * `sample_data/targets/bank_branch_mumbai.csv`
    * `sample_data/targets/bank_branch_delhi.xlsx`
    * `sample_data/targets/telecom_records.csv`
